@@ -189,6 +189,19 @@ export function getCalibratedMaterialHex(material) {
   if (primary === 'Red' && secondary === 'Orange') {
     return hslToHex(11 + (offset % 5), 85, 50 + (offset % 5));
   }
+  // Karmin / Asam Karminat: pada dosis penggunaan menghasilkan shade warna merah pekat (bukan pink/magenta)
+  if (
+    groupLower.includes('karmin') ||
+    groupLower.includes('antrakuinon') ||
+    nameLower.includes('carmine') ||
+    material.id === 'NC-038' ||
+    material.id === 'NC-048' ||
+    material.id === 'NC-049' ||
+    material.id === 'NC-050'
+  ) {
+    return hslToHex(352 + (offset % 5), 86, 38 + (offset % 4));
+  }
+
   if (
     nameLower.includes('pink') ||
     nameLower.includes('rose') ||
@@ -234,18 +247,16 @@ export function getCalibratedMaterialHex(material) {
  */
 function isRoseOrPinkCapable(mat) {
   if (!mat) return false;
+  // Bahan dengan karakter warna pink alami (mis. betalain bit tertentu, fruitmax pink, watermelon rose)
   const pinkIds = new Set([
     'NC-035',
     'NC-037',
-    'NC-038',
     'NC-039',
     'NC-041',
     'NC-043',
     'NC-045',
     'NC-046',
     'NC-047',
-    'NC-049',
-    'NC-050',
     'NC-051',
     'NC-070',
     'NC-071',

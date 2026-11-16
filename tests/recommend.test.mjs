@@ -9,6 +9,8 @@ import {
   filterCombinations,
   parsePhValue,
   isCategoryMatched,
+  getMaterialUsageStatus,
+  isPriorityMaterial,
 } from '../src/engine/recommend.js';
 import {
   getMaterialExtensionStatus,
@@ -698,6 +700,86 @@ export const testSuite = [
       const matYellow2 = matMap.get('NC-014');
       const liveMix = computeInteractiveMix(matYellow1, matYellow2, 60);
       assert.equal(liveMix.resultColor, 'Yellow');
+    },
+  },
+  {
+    name: 'Kasus Uji Kurasi Bahan Inventaris (Eksis & Rencana) serta Validasi Tampilan Carmine & Detail Granulasi',
+    fn: () => {
+      const matMap = new Map(materials.map((m) => [m.id, m]));
+
+      // 1. Validasi Status Bahan Inventaris
+      // - Bertanda W: Sudah Eksis
+      assert.equal(getMaterialUsageStatus(matMap.get('NC-003')), 'Sudah Eksis', 'W-Carotene harus berstatus Sudah Eksis');
+      assert.equal(getMaterialUsageStatus(matMap.get('NC-038')), 'Sudah Eksis', 'W-Carmine harus berstatus Sudah Eksis');
+
+      // - Daftar Rencana Digunakan
+      const plannedIds = [
+        'NC-049', // Carmine 50
+        'NC-050', // Carmine 52
+        'NC-069', // Shade Purple Plum
+        'NC-082', // Cuttle Fish Ink
+        'NC-052', // Sodium Copper Chlorophyllin
+        'NC-060', // Mint Green
+        'NC-022', // Intense Yellow 75L
+        'NC-028', // GY Yellow
+      ];
+      for (const id of plannedIds) {
+        assert.equal(
+          getMaterialUsageStatus(matMap.get(id)),
+          'Rencana Digunakan',
+          `Bahan ${id} harus berstatus Rencana Digunakan`
+        );
+      }
+
+      // - Sampel lainnya
+      assert.equal(getMaterialUsageStatus(matMap.get('NC-001')), 'Sampel', 'NC-001 harus berstatus Sampel');
+      assert.equal(getMaterialUsageStatus(matMap.get('NC-006')), 'Sampel', 'NC-006 harus berstatus Sampel');
+
+      // 2. Validasi filterCombinations dengan coreOnly
+      const coreCombos = filterCombinations(combinations, {
+        materials,
+        coreOnly: true,
+      });
+      assert.ok(coreCombos.length > 0, 'Kombinasi coreOnly harus menghasilkan pasangan bahan eksis/rencana');
+      for (const c of coreCombos) {
+        assert.ok(isPriorityMaterial(c.a), `Bahan A ${c.a.id} pada coreCombo harus prioritas`);
+        assert.ok(isPriorityMaterial(c.b), `Bahan B ${c.b.id} pada coreCombo harus prioritas`);
+      }
+
+      // 3. Validasi Shade Carmine Merah Pekat (bukan pink)
+      const nc049 = matMap.get('NC-049');
+      const nc050 = matMap.get('NC-050');
+      const hsl049 = hexToHsl(nc049.hex);
+      const hsl050 = hexToHsl(nc050.hex);
+      assert.ok(
+        hsl049.h >= 340 || hsl049.h <= 10,
+        `Carmine 50% (${nc049.hex}) harus berada di rona merah pekat`
+      );
+      assert.ok(
+        hsl049.l <= 45,
+        `Carmine 50% (${nc049.hex}) harus merah pekat (lightness <= 45%), bukan pink muda`
+      );
+      assert.ok(
+        hsl050.h >= 340 || hsl050.h <= 10,
+        `Carmine 52% (${nc050.hex}) harus berada di rona merah pekat`
+      );
+      assert.ok(
+        hsl050.l <= 45,
+        `Carmine 52% (${nc050.hex}) harus merah pekat (lightness <= 45%), bukan pink muda`
+      );
+
+      // 4. Validasi Halaman Detail tidak menampilkan sec-profil-granulasi
+      const detailHtml = renderDetailPage(mockDataStore, 'NC-003');
+      assert.equal(
+        detailHtml.includes('id="sec-profil-granulasi"'),
+        false,
+        'Halaman detail tidak boleh memuat sec-profil-granulasi'
+      );
+      assert.equal(
+        detailHtml.includes('Profil Kompatibilitas Proses Granulasi (Fluid-Bed Top-Spray Granulation)'),
+        false,
+        'Judul Profil Kompatibilitas Granulasi tidak boleh tampil di halaman detail bahan'
+      );
     },
   },
 ];

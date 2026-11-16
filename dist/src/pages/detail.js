@@ -3,7 +3,7 @@ import {
   TARGET_COLOR_HEX,
   resolveBookletGroupName,
 } from '../data-store.js';
-import { formatNumberId, filterCombinations } from '../engine/recommend.js';
+import { formatNumberId, filterCombinations, getMaterialUsageStatus } from '../engine/recommend.js';
 import {
   EXTENSION_PROCESSES,
   getMaterialExtensionStatus,
@@ -190,6 +190,16 @@ export function renderDetailPage(data, materialId) {
           </div>
           <h1 class="page-title" style="margin-bottom: 10px;">${escapeHtml(material.name)}</h1>
           <div class="result-card-chips">
+            ${(() => {
+              const uStatus = getMaterialUsageStatus(material);
+              if (uStatus === 'Sudah Eksis') {
+                return `<span class="chip" style="background: #E8F5E9; color: #1B5E20; border: 1px solid #81C784; font-weight: 700;">● Sudah Eksis</span>`;
+              }
+              if (uStatus === 'Rencana Digunakan') {
+                return `<span class="chip" style="background: #E3F2FD; color: #0D47A1; border: 1px solid #90CAF9; font-weight: 700;">★ Rencana Digunakan</span>`;
+              }
+              return `<span class="chip" style="background: #F5F5F5; color: #616161; border: 1px solid #E0E0E0;">Sampel Lab</span>`;
+            })()}
             <a href="${escapeHtml(bookletHref)}" class="chip" title="Buka halaman kelompok di Color Learning Booklet">
               <strong>Kelompok Pigmen:</strong> ${escapeHtml(material.group)} ↗
             </a>
@@ -227,95 +237,6 @@ export function renderDetailPage(data, materialId) {
             `
               )
               .join('')}
-          </tbody>
-        </table>
-      </section>
-    `
-        : ''
-    }
-
-    <!-- Profil Kompatibilitas Proses Granulasi (Fluid-Bed Top-Spray Granulation) -->
-    ${
-      granulationProfile && granulationProfile.maxProductTemp
-        ? `
-      <section class="card detail-section" id="sec-profil-granulasi">
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
-          <h2 class="detail-section-title" style="margin-bottom: 0; border-bottom: none; padding-bottom: 0;">
-            Profil Kompatibilitas Proses Granulasi (Fluid-Bed Top-Spray Granulation)
-          </h2>
-          <span class="status-badge ${
-            granulationProfile.status === 'Compatible'
-              ? 'status-ok'
-              : granulationProfile.status === 'Incompatible'
-                ? 'status-err'
-                : 'status-warn'
-          }">
-            <span aria-hidden="true">${
-              granulationProfile.status === 'Compatible'
-                ? '✓'
-                : granulationProfile.status === 'Incompatible'
-                  ? '✕'
-                  : '▲'
-            }</span>
-            Granulasi: ${escapeHtml(granulationProfile.status)}
-          </span>
-        </div>
-        <table class="clean-table">
-          <tbody>
-            <tr>
-              <th scope="row">Status Kompatibilitas</th>
-              <td><strong>${escapeHtml(granulationProfile.status)}</strong></td>
-            </tr>
-            ${
-              granulationProfile.maxProductTemp
-                ? `
-              <tr>
-                <th scope="row">Batas Suhu Produk &amp; Pengeringan</th>
-                <td>${escapeHtml(granulationProfile.maxProductTemp)}</td>
-              </tr>
-            `
-                : ''
-            }
-            ${
-              granulationProfile.moistureAwLimit
-                ? `
-              <tr>
-                <th scope="row">Sensitivitas Kelembapan (a_w) &amp; Oksidasi</th>
-                <td>${escapeHtml(granulationProfile.moistureAwLimit)}</td>
-              </tr>
-            `
-                : ''
-            }
-            ${
-              granulationProfile.binderAndMatrix
-                ? `
-              <tr>
-                <th scope="row">Sistem Pengikat (Binder) &amp; Matriks</th>
-                <td>${escapeHtml(granulationProfile.binderAndMatrix)}</td>
-              </tr>
-            `
-                : ''
-            }
-            ${
-              granulationProfile.specklingRisk
-                ? `
-              <tr>
-                <th scope="row">Risiko Bercak Warna (Speckling / Mottling)</th>
-                <td>${escapeHtml(granulationProfile.specklingRisk)}</td>
-              </tr>
-            `
-                : ''
-            }
-            ${
-              granulationProfile.evidence
-                ? `
-              <tr>
-                <th scope="row">Mekanisme Stabilitas &amp; Catatan R&amp;D</th>
-                <td>${escapeHtml(granulationProfile.evidence)}</td>
-              </tr>
-            `
-                : ''
-            }
           </tbody>
         </table>
       </section>

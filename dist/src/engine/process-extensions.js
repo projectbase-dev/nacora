@@ -552,15 +552,15 @@ export const BOOKLET_GRANULATION_GUIDES = {
         mechanism:
           'Larutan pengikat (binder solution) yang telah dicampur pewarna disemprotkan dari atas (top-spray) ke unggun serbuk yang terfluidisasi oleh aliran udara hangat hingga terbentuk granul berpori.',
         suitability:
-          'Menghasilkan distribusi warna homogen bebas bintik (speckle-free) dengan suhu produk aktual 15–25 °C lebih rendah dari suhu udara masuk berkat pendinginan evaporatif. Sangat cocok untuk Karotenoid CWS/WSP, Kurkuminoid, Safflower, Karmin, Klorofilin Tembaga, Gardenia Blue, Antosianin terasilasi, dan Karbon.',
+          'Menghasilkan distribusi warna homogen bebas bintik (speckle-free) dengan suhu produk aktual 15–25 °C lebih rendah dari suhu udara masuk berkat pendinginan evaporatif. Sangat cocok untuk Kurkuminoid, Safflower, Karmin, Klorofilin Tembaga, Gardenia Blue, Antosianin terasilasi, dan Karbon. Catatan: Karotenoid tidak sesuai untuk granulasi karena gesekan fluidisasi dan pembasahan termal dapat merusak lapisan enkapsulasi pelindungnya.',
       },
     ],
   },
   Karotenoid: {
     summary:
-      'Karotenoid tahan terhadap berbagai proses termal (Pasteurisasi, UHT, Baking, Pembekuan, hingga Fluid-Bed Top-Spray Granulation), namun ikatan rangkap terkonjugasinya harus dilindungi dari autooksidasi oleh oksigen dan paparan cahaya.',
+      'Karotenoid tahan terhadap berbagai proses termal seperti Pasteurisasi, UHT, Baking, dan Pembekuan. Namun, karotenoid tidak sesuai untuk proses granulasi karena proses tersebut dapat merusak lapisan pelindungnya dan mempercepat oksidasi pigmen.',
     keyParameters:
-      '• Pasteurisasi, UHT & Baking: Sangat stabil; tambahkan asam askorbat (200–300 ppm) atau tokoferol untuk mencegah oksidasi.\n• Fluid-Bed Top-Spray Granulation: Gunakan varian serbuk terenkapsulasi (CWS/WSP/beadlet, status Compatible) yang didispersikan ke dalam larutan pengikat top-spray pada suhu produk ≤ 60–70 °C (varian emulsi cair berstatus Unknown dan butuh kontrol suhu ≤ 50–55 °C).',
+      '• Pasteurisasi, UHT & Baking: Sangat stabil; tambahkan antioksidan (asam askorbat 200–300 ppm atau tokoferol) untuk mencegah oksidasi.\n• Granulasi: Tidak disarankan untuk proses granulasi karena gesekan fluidisasi dan pembasahan cairan pengikat dapat merusak lapisan enkapsulasi pelindung karotenoid; bila diaplikasikan pada sediaan serbuk, tambahkan secara dry-blending pasca-granulasi.',
   },
   Kurkuminoid: {
     summary:

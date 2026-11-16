@@ -31,6 +31,71 @@ export const DEFAULT_PACKAGING_EXPOSURE = {
   'Cup plastik bening': 'Tinggi',
 };
 
+export const MATERIAL_USAGE_STATUS = {
+  EXISTING: 'Sudah Eksis',
+  PLANNED: 'Rencana Digunakan',
+  SAMPLE: 'Sampel',
+};
+
+/**
+ * Mengidentifikasi status inventaris bahan:
+ * - "Sudah Eksis": bahan dengan kode/awalan 'W-' (seperti W-Carotene 79, W-Carmine 70, W-Beet Red)
+ * - "Rencana Digunakan": Carmine 50/52, Shade Purple Plum, Cuttle Fish Ink, Sodium Copper Chlorophyllin, Mint Green, Intense Yellow, Gardenia Yellow
+ * - "Sampel": seluruh sampel laboratorium lainnya
+ */
+export function getMaterialUsageStatus(material) {
+  if (!material) return 'Sampel';
+  const name = String(material.name || '').trim();
+  const id = String(material.id || '').trim();
+
+  // 1. Yang ada keterangan "W" adalah bahan yang sudah eksis
+  if (name.startsWith('W-') || id === 'NC-003' || id === 'NC-038' || id === 'NC-037') {
+    return 'Sudah Eksis';
+  }
+
+  // 2. Bahan yang sudah direncanakan untuk digunakan
+  const plannedIds = new Set([
+    'NC-049', // Carmine 50%
+    'NC-050', // Carmine 52%
+    'NC-069', // Shade Purple Plum
+    'NC-082', // Cuttle Fish Ink
+    'NC-052', // Sodium Copper Chlorophyllin
+    'NC-053', // Copper Chlorophyl OS
+    'NC-056', // C-10.000P-WS-AP
+    'NC-057', // ColorFruit Green
+    'NC-058', // CT-7020-WS-AP
+    'NC-059', // Green Powder 984
+    'NC-060', // Mint Green
+    'NC-022', // Intense Yellow 75L
+    'NC-029', // Intense Yellow 65P
+    'NC-028', // GY Yellow (Gardenia Yellow)
+  ]);
+
+  if (plannedIds.has(id)) {
+    return 'Rencana Digunakan';
+  }
+
+  const lower = name.toLowerCase();
+  if (
+    lower.includes('shade purple plum') ||
+    lower.includes('cuttle fish') ||
+    lower.includes('sodium copper') ||
+    lower.includes('mint green') ||
+    lower.includes('intense yellow') ||
+    lower.includes('gy yellow') ||
+    lower.includes('gardenia yellow')
+  ) {
+    return 'Rencana Digunakan';
+  }
+
+  return 'Sampel';
+}
+
+export function isPriorityMaterial(material) {
+  const status = getMaterialUsageStatus(material);
+  return status === 'Sudah Eksis' || status === 'Rencana Digunakan';
+}
+
 export function formatNumberId(num) {
   if (num === null || num === undefined || Number.isNaN(Number(num))) return '';
   const n = Number(num);
@@ -415,6 +480,11 @@ export function filterCombinations(combinations, filters = {}) {
       } else {
         const procs = Array.isArray(combo.processes) ? combo.processes : [];
         if (!procs.includes(processName)) return false;
+      }
+    }
+    if (filters.coreOnly) {
+      if (!isPriorityMaterial(combo.a) || !isPriorityMaterial(combo.b)) {
+        return false;
       }
     }
     return true;

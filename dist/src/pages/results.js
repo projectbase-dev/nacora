@@ -9,6 +9,8 @@ import {
   formatNumberId,
   parsePhValue,
   normalizeProcessInput,
+  getMaterialUsageStatus,
+  isPriorityMaterial,
 } from '../engine/recommend.js';
 import {
   isExtensionProcess,
@@ -100,8 +102,16 @@ function renderSingleResultCard(evaluated, data) {
   const consId = `cons-${material.id}`;
   const isLongCons = material.cons && material.cons.length > 130;
 
+  const uStatus = getMaterialUsageStatus(material);
+  const statusChipHtml =
+    uStatus === 'Sudah Eksis'
+      ? `<span class="chip" style="background: #E8F5E9; color: #1B5E20; border: 1px solid #81C784; font-weight: 700;">● Sudah Eksis</span>`
+      : uStatus === 'Rencana Digunakan'
+        ? `<span class="chip" style="background: #E3F2FD; color: #0D47A1; border: 1px solid #90CAF9; font-weight: 700;">★ Rencana Digunakan</span>`
+        : `<span class="chip" style="background: #F5F5F5; color: #616161; border: 1px solid #E0E0E0;">Sampel Lab</span>`;
+
   return `
-    <article class="card result-card" data-material-id="${escapeHtml(material.id)}">
+    <article class="card result-card" data-material-id="${escapeHtml(material.id)}" data-usage-status="${escapeHtml(uStatus)}">
       <div class="result-card-top">
         <div class="swatch-box" style="${swatchStyle}" title="${escapeHtml(material.hex || material.name)}" aria-label="Swatch warna ${escapeHtml(material.name)}">
           ${swatchContent}
@@ -111,6 +121,7 @@ function renderSingleResultCard(evaluated, data) {
             <a href="#/bahan/${encodeURIComponent(material.id)}">${escapeHtml(material.name)}</a>
           </h3>
           <div class="result-card-chips">
+            ${statusChipHtml}
             <a href="${escapeHtml(bookletHref)}" class="chip" title="Pelajari kelompok pigmen di Booklet">
               ${escapeHtml(material.group)}
             </a>
@@ -227,6 +238,10 @@ export function renderResultsPage(data, queryParams) {
     ? getExtensionProcessMeta(proses)
     : null;
 
+  const allCandidates = [...result.sangatSesuai, ...result.sesuaiDenganCatatan];
+  const coreCandidateCount = allCandidates.filter((item) => isPriorityMaterial(item.material)).length;
+  const totalCandidateCount = allCandidates.length;
+
   return `
     <div class="results-summary-bar">
       <div>
@@ -261,6 +276,27 @@ export function renderResultsPage(data, queryParams) {
       <div class="info-box" style="margin-bottom: 24px; border-left-color: var(--status-warn); background-color: var(--status-warn-bg);" role="note" aria-label="Informasi kompatibilitas granulasi">
         <strong>Catatan Kompatibilitas ${escapeHtml(extProcessMeta.label)}:</strong>
         ${escapeHtml(extProcessMeta.bannerNotice)}
+      </div>
+    `
+        : ''
+    }
+
+    ${
+      hasCandidates
+        ? `
+      <div class="results-priority-filter no-print" style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: var(--color-surface); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--color-border);">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span style="font-size: 0.875rem; font-weight: 600;">Prioritas Inventaris Bahan:</span>
+          <button type="button" id="btn-filter-core" class="btn btn-sm btn-secondary" style="background: #E8F5E9; color: #1B5E20; border-color: #81C784; font-weight: 700;">
+            ★ Bahan Eksis &amp; Rencana (${coreCandidateCount})
+          </button>
+          <button type="button" id="btn-filter-all" class="btn btn-sm btn-primary">
+            Semua Bahan (${totalCandidateCount})
+          </button>
+        </div>
+        <span style="font-size: 0.8125rem; color: var(--color-muted);">
+          Bahan bertanda "W" sudah eksis di pabrik; bahan rencana siap digunakan.
+        </span>
       </div>
     `
         : ''
@@ -412,6 +448,36 @@ export function attachResultsPageEvents() {
       if (accArrow) {
         accArrow.textContent = isHidden ? '▴' : '▾';
       }
+    });
+  }
+
+  // Tombol Filter Prioritas Inventaris Bahan (Eksis & Rencana)
+  const btnCore = document.getElementById('btn-filter-core');
+  const btnAll = document.getElementById('btn-filter-all');
+  if (btnCore && btnAll) {
+    btnCore.addEventListener('click', () => {
+      btnCore.classList.remove('btn-secondary');
+      btnCore.classList.add('btn-primary');
+      btnAll.classList.remove('btn-primary');
+      btnAll.classList.add('btn-secondary');
+      document.querySelectorAll('.result-card').forEach((card) => {
+        const status = card.getAttribute('data-usage-status');
+        if (status === 'Sampel') {
+          card.style.display = 'none';
+        } else {
+          card.style.display = '';
+        }
+      });
+    });
+
+    btnAll.addEventListener('click', () => {
+      btnAll.classList.remove('btn-secondary');
+      btnAll.classList.add('btn-primary');
+      btnCore.classList.remove('btn-primary');
+      btnCore.classList.add('btn-secondary');
+      document.querySelectorAll('.result-card').forEach((card) => {
+        card.style.display = '';
+      });
     });
   }
 
