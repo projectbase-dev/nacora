@@ -102,16 +102,8 @@ function renderSingleResultCard(evaluated, data) {
   const consId = `cons-${material.id}`;
   const isLongCons = material.cons && material.cons.length > 130;
 
-  const uStatus = getMaterialUsageStatus(material);
-  const statusChipHtml =
-    uStatus === 'Sudah Eksis'
-      ? `<span class="chip" style="background: #E8F5E9; color: #1B5E20; border: 1px solid #81C784; font-weight: 700;">● Sudah Eksis</span>`
-      : uStatus === 'Rencana Digunakan'
-        ? `<span class="chip" style="background: #E3F2FD; color: #0D47A1; border: 1px solid #90CAF9; font-weight: 700;">★ Rencana Digunakan</span>`
-        : `<span class="chip" style="background: #F5F5F5; color: #616161; border: 1px solid #E0E0E0;">Sampel Lab</span>`;
-
   return `
-    <article class="card result-card" data-material-id="${escapeHtml(material.id)}" data-usage-status="${escapeHtml(uStatus)}">
+    <article class="card result-card" data-material-id="${escapeHtml(material.id)}">
       <div class="result-card-top">
         <div class="swatch-box" style="${swatchStyle}" title="${escapeHtml(material.hex || material.name)}" aria-label="Swatch warna ${escapeHtml(material.name)}">
           ${swatchContent}
@@ -121,7 +113,6 @@ function renderSingleResultCard(evaluated, data) {
             <a href="#/bahan/${encodeURIComponent(material.id)}">${escapeHtml(material.name)}</a>
           </h3>
           <div class="result-card-chips">
-            ${statusChipHtml}
             <a href="${escapeHtml(bookletHref)}" class="chip" title="Pelajari kelompok pigmen di Booklet">
               ${escapeHtml(material.group)}
             </a>
@@ -238,9 +229,15 @@ export function renderResultsPage(data, queryParams) {
     ? getExtensionProcessMeta(proses)
     : null;
 
-  const allCandidates = [...result.sangatSesuai, ...result.sesuaiDenganCatatan];
-  const coreCandidateCount = allCandidates.filter((item) => isPriorityMaterial(item.material)).length;
-  const totalCandidateCount = allCandidates.length;
+  const sortByPriority = (list) =>
+    [...list].sort((a, b) => {
+      const aPri = isPriorityMaterial(a.material) ? 1 : 0;
+      const bPri = isPriorityMaterial(b.material) ? 1 : 0;
+      return bPri - aPri;
+    });
+
+  const sortedSangatSesuai = sortByPriority(result.sangatSesuai);
+  const sortedSesuaiDenganCatatan = sortByPriority(result.sesuaiDenganCatatan);
 
   return `
     <div class="results-summary-bar">
@@ -282,27 +279,6 @@ export function renderResultsPage(data, queryParams) {
     }
 
     ${
-      hasCandidates
-        ? `
-      <div class="results-priority-filter no-print" style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: var(--color-surface); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--color-border);">
-        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <span style="font-size: 0.875rem; font-weight: 600;">Prioritas Inventaris Bahan:</span>
-          <button type="button" id="btn-filter-core" class="btn btn-sm btn-secondary" style="background: #E8F5E9; color: #1B5E20; border-color: #81C784; font-weight: 700;">
-            ★ Bahan Eksis &amp; Rencana (${coreCandidateCount})
-          </button>
-          <button type="button" id="btn-filter-all" class="btn btn-sm btn-primary">
-            Semua Bahan (${totalCandidateCount})
-          </button>
-        </div>
-        <span style="font-size: 0.8125rem; color: var(--color-muted);">
-          Bahan bertanda "W" sudah eksis di pabrik; bahan rencana siap digunakan.
-        </span>
-      </div>
-    `
-        : ''
-    }
-
-    ${
       !hasCandidates
         ? `
       <div class="card" style="text-align: center; padding: 40px 24px;">
@@ -317,17 +293,17 @@ export function renderResultsPage(data, queryParams) {
     }
 
     ${
-      result.sangatSesuai.length > 0
+      sortedSangatSesuai.length > 0
         ? `
       <section class="results-group-section" aria-labelledby="heading-sangat-sesuai">
         <div class="results-group-header">
           <h2 id="heading-sangat-sesuai" class="results-group-title">
             <span class="status-badge status-ok"><span aria-hidden="true">✓</span> Sangat sesuai</span>
           </h2>
-          <span class="results-count-pill">${result.sangatSesuai.length} kandidat</span>
+          <span class="results-count-pill">${sortedSangatSesuai.length} kandidat</span>
         </div>
         <div class="results-cards-stack">
-          ${result.sangatSesuai.map((item) => renderSingleResultCard(item, data)).join('')}
+          ${sortedSangatSesuai.map((item) => renderSingleResultCard(item, data)).join('')}
         </div>
       </section>
     `
@@ -335,17 +311,17 @@ export function renderResultsPage(data, queryParams) {
     }
 
     ${
-      result.sesuaiDenganCatatan.length > 0
+      sortedSesuaiDenganCatatan.length > 0
         ? `
       <section class="results-group-section" aria-labelledby="heading-sesuai-catatan">
         <div class="results-group-header">
           <h2 id="heading-sesuai-catatan" class="results-group-title">
             <span class="status-badge status-warn"><span aria-hidden="true">▲</span> Sesuai dengan catatan</span>
           </h2>
-          <span class="results-count-pill">${result.sesuaiDenganCatatan.length} kandidat</span>
+          <span class="results-count-pill">${sortedSesuaiDenganCatatan.length} kandidat</span>
         </div>
         <div class="results-cards-stack">
-          ${result.sesuaiDenganCatatan.map((item) => renderSingleResultCard(item, data)).join('')}
+          ${sortedSesuaiDenganCatatan.map((item) => renderSingleResultCard(item, data)).join('')}
         </div>
       </section>
     `
@@ -448,36 +424,6 @@ export function attachResultsPageEvents() {
       if (accArrow) {
         accArrow.textContent = isHidden ? '▴' : '▾';
       }
-    });
-  }
-
-  // Tombol Filter Prioritas Inventaris Bahan (Eksis & Rencana)
-  const btnCore = document.getElementById('btn-filter-core');
-  const btnAll = document.getElementById('btn-filter-all');
-  if (btnCore && btnAll) {
-    btnCore.addEventListener('click', () => {
-      btnCore.classList.remove('btn-secondary');
-      btnCore.classList.add('btn-primary');
-      btnAll.classList.remove('btn-primary');
-      btnAll.classList.add('btn-secondary');
-      document.querySelectorAll('.result-card').forEach((card) => {
-        const status = card.getAttribute('data-usage-status');
-        if (status === 'Sampel') {
-          card.style.display = 'none';
-        } else {
-          card.style.display = '';
-        }
-      });
-    });
-
-    btnAll.addEventListener('click', () => {
-      btnAll.classList.remove('btn-secondary');
-      btnAll.classList.add('btn-primary');
-      btnCore.classList.remove('btn-primary');
-      btnCore.classList.add('btn-secondary');
-      document.querySelectorAll('.result-card').forEach((card) => {
-        card.style.display = '';
-      });
     });
   }
 

@@ -780,6 +780,31 @@ export const testSuite = [
         false,
         'Judul Profil Kompatibilitas Granulasi tidak boleh tampil di halaman detail bahan'
       );
+
+      // 5. Validasi ketiadaan teks "Prioritas Inventaris Bahan:" dan pengurutan rekomendasi
+      const resultsHtml = renderResultsPage(
+        mockDataStore,
+        new URLSearchParams({
+          kat: '14.0',
+          proses: 'Pasteurisasi',
+          ph: '3.5',
+          kemasan: 'Botol PET bening',
+          simpan: 'Suhu ruang',
+          warna: 'Orange',
+        })
+      );
+      assert.equal(
+        resultsHtml.includes('Prioritas Inventaris Bahan'),
+        false,
+        'Results page tidak boleh memuat teks Prioritas Inventaris Bahan'
+      );
+
+      const mixHtml = renderMixPage(mockDataStore, new URLSearchParams());
+      assert.equal(
+        mixHtml.includes('Prioritas Inventaris Bahan'),
+        false,
+        'Mix page tidak boleh memuat teks Prioritas Inventaris Bahan'
+      );
     },
   },
 ];

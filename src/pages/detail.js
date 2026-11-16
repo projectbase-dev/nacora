@@ -190,16 +190,6 @@ export function renderDetailPage(data, materialId) {
           </div>
           <h1 class="page-title" style="margin-bottom: 10px;">${escapeHtml(material.name)}</h1>
           <div class="result-card-chips">
-            ${(() => {
-              const uStatus = getMaterialUsageStatus(material);
-              if (uStatus === 'Sudah Eksis') {
-                return `<span class="chip" style="background: #E8F5E9; color: #1B5E20; border: 1px solid #81C784; font-weight: 700;">● Sudah Eksis</span>`;
-              }
-              if (uStatus === 'Rencana Digunakan') {
-                return `<span class="chip" style="background: #E3F2FD; color: #0D47A1; border: 1px solid #90CAF9; font-weight: 700;">★ Rencana Digunakan</span>`;
-              }
-              return `<span class="chip" style="background: #F5F5F5; color: #616161; border: 1px solid #E0E0E0;">Sampel Lab</span>`;
-            })()}
             <a href="${escapeHtml(bookletHref)}" class="chip" title="Buka halaman kelompok di Color Learning Booklet">
               <strong>Kelompok Pigmen:</strong> ${escapeHtml(material.group)} ↗
             </a>

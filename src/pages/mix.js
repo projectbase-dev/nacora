@@ -49,9 +49,9 @@ export function renderCombinationCard(combo) {
 
   const phRangeText =
     combo.ph?.min !== null &&
-    combo.ph?.min !== undefined &&
-    combo.ph?.max !== null &&
-    combo.ph?.max !== undefined
+      combo.ph?.min !== undefined &&
+      combo.ph?.max !== null &&
+      combo.ph?.max !== undefined
       ? `pH ${formatNumberId(combo.ph.min)}–${formatNumberId(combo.ph.max)}`
       : null;
 
@@ -67,33 +67,14 @@ export function renderCombinationCard(combo) {
       : []),
   ].join('');
 
-  const statusA = getMaterialUsageStatus(combo.a);
-  const statusB = getMaterialUsageStatus(combo.b);
-  const isBothCore = isPriorityMaterial(combo.a) && isPriorityMaterial(combo.b);
-
-  const badgeA =
-    statusA === 'Sudah Eksis'
-      ? `<span class="chip" style="font-size: 0.6875rem; padding: 1px 6px; background: #E8F5E9; color: #1B5E20; border: 1px solid #81C784;">● Eksis</span>`
-      : statusA === 'Rencana Digunakan'
-        ? `<span class="chip" style="font-size: 0.6875rem; padding: 1px 6px; background: #E3F2FD; color: #0D47A1; border: 1px solid #90CAF9;">★ Rencana</span>`
-        : `<span class="chip" style="font-size: 0.6875rem; padding: 1px 6px; background: #F5F5F5; color: #616161;">Sampel</span>`;
-
-  const badgeB =
-    statusB === 'Sudah Eksis'
-      ? `<span class="chip" style="font-size: 0.6875rem; padding: 1px 6px; background: #E8F5E9; color: #1B5E20; border: 1px solid #81C784;">● Eksis</span>`
-      : statusB === 'Rencana Digunakan'
-        ? `<span class="chip" style="font-size: 0.6875rem; padding: 1px 6px; background: #E3F2FD; color: #0D47A1; border: 1px solid #90CAF9;">★ Rencana</span>`
-        : `<span class="chip" style="font-size: 0.6875rem; padding: 1px 6px; background: #F5F5F5; color: #616161;">Sampel</span>`;
-
   return `
-    <article class="card combo-card" data-combo-id="${escapeHtml(combo.id)}" data-both-core="${isBothCore ? 'true' : 'false'}">
+    <article class="card combo-card" data-combo-id="${escapeHtml(combo.id)}">
       <div class="combo-equation">
         <div class="combo-part">
           <div class="swatch-box" style="background-color: ${escapeHtml(hexA)};" title="${escapeHtml(hexA)}"></div>
           <div>
-            <div style="font-size: 0.75rem; color: var(--color-muted); font-weight: 600; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+            <div style="font-size: 0.75rem; color: var(--color-muted); font-weight: 600;">
               <span>Bahan A (${escapeHtml(combo.a?.id || '')})</span>
-              ${badgeA}
             </div>
             <strong>
               <a href="#/bahan/${encodeURIComponent(combo.a?.id || '')}">${escapeHtml(combo.a?.name || combo.a?.id || '')}</a>
@@ -106,9 +87,8 @@ export function renderCombinationCard(combo) {
         <div class="combo-part">
           <div class="swatch-box" style="background-color: ${escapeHtml(hexB)};" title="${escapeHtml(hexB)}"></div>
           <div>
-            <div style="font-size: 0.75rem; color: var(--color-muted); font-weight: 600; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+            <div style="font-size: 0.75rem; color: var(--color-muted); font-weight: 600;">
               <span>Bahan B (${escapeHtml(combo.b?.id || '')})</span>
-              ${badgeB}
             </div>
             <strong>
               <a href="#/bahan/${encodeURIComponent(combo.b?.id || '')}">${escapeHtml(combo.b?.name || combo.b?.id || '')}</a>
@@ -133,12 +113,10 @@ export function renderCombinationCard(combo) {
       <div class="combo-meta-row">
         <div>
           <strong class="combo-ratio-text">Rasio A:B ${escapeHtml(combo.ratio || '-')}</strong>
-          ${
-            combo.ratioRange
-              ? `<span class="combo-ratio-sub">(rasio intensitas warna; rentang ${escapeHtml(combo.ratioRange)})</span>`
-              : `<span class="combo-ratio-sub">(rasio intensitas warna)</span>`
-          }
-          ${isBothCore ? `<span class="chip" style="margin-left: 8px; background: #E8F5E9; color: #1B5E20; border: 1px solid #81C784; font-weight: 700;">★ Bahan Eksis / Rencana</span>` : ''}
+           ${combo.ratioRange
+      ? `<span class="combo-ratio-sub">(rasio intensitas warna; rentang ${escapeHtml(combo.ratioRange)})</span>`
+      : `<span class="combo-ratio-sub">(rasio intensitas warna)</span>`
+    }
         </div>
         <span class="chip" title="Skor kompatibilitas dan kejelasan warna">
           Skor: ${escapeHtml(formatNumberId(combo.score))}
@@ -150,15 +128,14 @@ export function renderCombinationCard(combo) {
         ${processChips}
       </div>
 
-      ${
-        combo.notes
-          ? `
+      ${combo.notes
+      ? `
         <p style="margin: 0; font-size: 0.875rem; color: var(--color-text);">
           <strong>Catatan:</strong> ${escapeHtml(combo.notes)}
         </p>
       `
-          : ''
-      }
+      : ''
+    }
     </article>
   `;
 }
@@ -198,33 +175,22 @@ export function renderMixPage(data, queryParams) {
     materials.find((m) => m.id !== defaultMatA?.id) ||
     materials[0];
 
-  const coreMaterials = materials.filter((m) => isPriorityMaterial(m));
-  const otherMaterials = materials.filter((m) => !isPriorityMaterial(m));
+  const sortedMaterials = [...materials].sort((a, b) => {
+    const aPri = isPriorityMaterial(a) ? 1 : 0;
+    const bPri = isPriorityMaterial(b) ? 1 : 0;
+    return bPri - aPri;
+  });
 
-  const renderMaterialOptions = (selectedId) => `
-    <optgroup label="Bahan Eksis &amp; Rencana Digunakan (Prioritas)">
-      ${coreMaterials
-        .map(
-          (m) => `
-        <option value="${escapeHtml(m.id)}" ${m.id === selectedId ? 'selected' : ''}>
-          ${escapeHtml(m.id)} — ${escapeHtml(m.name)} [${escapeHtml(getMaterialUsageStatus(m))}]
-        </option>
-      `
-        )
-        .join('')}
-    </optgroup>
-    <optgroup label="Sampel Laboratorium Lainnya">
-      ${otherMaterials
-        .map(
-          (m) => `
-        <option value="${escapeHtml(m.id)}" ${m.id === selectedId ? 'selected' : ''}>
-          ${escapeHtml(m.id)} — ${escapeHtml(m.name)} [Sampel]
-        </option>
-      `
-        )
-        .join('')}
-    </optgroup>
-  `;
+  const renderMaterialOptions = (selectedId) =>
+    sortedMaterials
+      .map(
+        (m) => `
+      <option value="${escapeHtml(m.id)}" ${m.id === selectedId ? 'selected' : ''}>
+        ${escapeHtml(m.id)} — ${escapeHtml(m.name)}
+      </option>
+    `
+      )
+      .join('');
 
   return `
     <div class="page-header">
@@ -234,9 +200,8 @@ export function renderMixPage(data, queryParams) {
       </p>
     </div>
 
-    ${
-      materialObj
-        ? `
+    ${materialObj
+      ? `
       <div class="card" style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; background-color: var(--color-primary-light); border-color: var(--color-primary);">
         <div style="display: flex; align-items: center; gap: 12px;">
           <div class="swatch-box" style="background-color: ${escapeHtml(getCalibratedMaterialHex(materialObj))};"></div>
@@ -253,7 +218,7 @@ export function renderMixPage(data, queryParams) {
         </div>
       </div>
     `
-        : ''
+      : ''
     }
 
     <!-- Kalkulator Eksplorasi Langsung Campuran 2 Bahan -->
@@ -318,9 +283,8 @@ export function renderMixPage(data, queryParams) {
           Warna Hasil ${materialObj ? '(Opsional — dikelompokkan per Warna Hasil bila Semua dipilih)' : ''}
         </span>
         <div class="mix-color-chips" role="group" aria-labelledby="label-mix-color">
-          ${
-            materialObj
-              ? `
+          ${materialObj
+      ? `
             <button
               type="button"
               class="mix-color-chip-btn ${initialColor === '' ? 'selected' : ''}"
@@ -329,13 +293,13 @@ export function renderMixPage(data, queryParams) {
               <span>Semua Warna Hasil</span>
             </button>
           `
-              : ''
-          }
+      : ''
+    }
           ${colorOptions
-            .map((opt) => {
-              const hex = TARGET_COLOR_HEX[opt.value] || opt.hex || '#CCCCCC';
-              const active = opt.value === initialColor;
-              return `
+      .map((opt) => {
+        const hex = TARGET_COLOR_HEX[opt.value] || opt.hex || '#CCCCCC';
+        const active = opt.value === initialColor;
+        return `
                 <button
                   type="button"
                   class="mix-color-chip-btn ${active ? 'selected' : ''}"
@@ -345,8 +309,8 @@ export function renderMixPage(data, queryParams) {
                   <span>${escapeHtml(opt.value)}</span>
                 </button>
               `;
-            })
-            .join('')}
+      })
+      .join('')}
         </div>
         <p id="mix-color-shade-desc" class="form-help" style="margin-top: 8px;">
           ${escapeHtml(COLOR_SHADE_DEFINITIONS[initialColor] || 'Menampilkan seluruh kombinasi lintas kategori warna hasil.')}
@@ -374,31 +338,16 @@ export function renderMixPage(data, queryParams) {
           <select id="mix-input-process" class="form-control">
             <option value="">Semua proses pengolahan</option>
             ${processOptions
-              .map((opt) => {
-                const label =
-                  opt.value === 'Tanpa pemanasan'
-                    ? 'Tanpa pemanasan setelah pencampuran'
-                    : opt.value;
-                const sel = opt.value === initialProcess ? 'selected' : '';
-                return `<option value="${escapeHtml(opt.value)}" ${sel}>${escapeHtml(label)}</option>`;
-              })
-              .join('')}
+      .map((opt) => {
+        const label =
+          opt.value === 'Tanpa pemanasan'
+            ? 'Tanpa pemanasan setelah pencampuran'
+            : opt.value;
+        const sel = opt.value === initialProcess ? 'selected' : '';
+        return `<option value="${escapeHtml(opt.value)}" ${sel}>${escapeHtml(label)}</option>`;
+      })
+      .join('')}
           </select>
-        </div>
-
-        <div class="form-group" style="grid-column: 1 / -1; margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--color-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <span style="font-size: 0.875rem; font-weight: 600;">Prioritas Inventaris Bahan:</span>
-            <button type="button" id="mix-filter-core-btn" class="btn btn-sm btn-secondary" style="background: #E8F5E9; color: #1B5E20; border-color: #81C784; font-weight: 700;">
-              ★ Bahan Eksis &amp; Rencana
-            </button>
-            <button type="button" id="mix-filter-all-btn" class="btn btn-sm btn-primary">
-              Semua Kombinasi
-            </button>
-          </div>
-          <span style="font-size: 0.8125rem; color: var(--color-muted);">
-            Bahan bertanda "W" sudah eksis di pabrik; bahan rencana siap digunakan.
-          </span>
         </div>
       </div>
     </section>
@@ -504,11 +453,10 @@ export function attachMixPageEvents(data) {
             Tampilkan Semua Kombinasi ${escapeHtml(mix.resultColor)} ↓
           </button>
         </div>
-        ${
-          mix.notes
-            ? `<p style="margin: 8px 0 0 0; font-size: 0.8125rem; color: var(--color-text);"><strong>Catatan Teknis:</strong> ${escapeHtml(mix.notes)}</p>`
-            : ''
-        }
+        ${mix.notes
+        ? `<p style="margin: 8px 0 0 0; font-size: 0.8125rem; color: var(--color-text);"><strong>Catatan Teknis:</strong> ${escapeHtml(mix.notes)}</p>`
+        : ''
+      }
       </div>
     `;
 
@@ -532,32 +480,6 @@ export function attachMixPageEvents(data) {
   }
 
   let visibleLimit = 30;
-  let isCoreOnly = false;
-
-  const mixFilterCoreBtn = document.getElementById('mix-filter-core-btn');
-  const mixFilterAllBtn = document.getElementById('mix-filter-all-btn');
-
-  if (mixFilterCoreBtn && mixFilterAllBtn) {
-    mixFilterCoreBtn.addEventListener('click', () => {
-      isCoreOnly = true;
-      mixFilterCoreBtn.classList.remove('btn-secondary');
-      mixFilterCoreBtn.classList.add('btn-primary');
-      mixFilterAllBtn.classList.remove('btn-primary');
-      mixFilterAllBtn.classList.add('btn-secondary');
-      visibleLimit = 30;
-      renderResultsList();
-    });
-
-    mixFilterAllBtn.addEventListener('click', () => {
-      isCoreOnly = false;
-      mixFilterAllBtn.classList.remove('btn-secondary');
-      mixFilterAllBtn.classList.add('btn-primary');
-      mixFilterCoreBtn.classList.remove('btn-primary');
-      mixFilterCoreBtn.classList.add('btn-secondary');
-      visibleLimit = 30;
-      renderResultsList();
-    });
-  }
 
   function renderResultsList() {
     const materialId = materialInput.value.trim();
@@ -587,30 +509,35 @@ export function attachMixPageEvents(data) {
       resultColor: selectedColor,
       ph: phParam,
       process: processVal,
-      coreOnly: isCoreOnly,
     });
 
-    if (filtered.length === 0) {
+    const prioritized = [...filtered].sort((x, y) => {
+      const xCore = (isPriorityMaterial(x.a) ? 1 : 0) + (isPriorityMaterial(x.b) ? 1 : 0);
+      const yCore = (isPriorityMaterial(y.a) ? 1 : 0) + (isPriorityMaterial(y.b) ? 1 : 0);
+      if (yCore !== xCore) return yCore - xCore;
+      return (y.score ?? 0) - (x.score ?? 0);
+    });
+
+    if (prioritized.length === 0) {
       const isExt = isExtensionProcess(processVal);
       container.innerHTML = `
         <div class="card" style="text-align: center; padding: 36px 24px;">
           <h2 style="font-size: 1.2rem; margin-bottom: 8px;">
             Tidak ada kombinasi yang cocok dengan penyaring ini. Coba ubah pH atau proses.
           </h2>
-          ${
-            isExt
-              ? `<p style="margin: 8px 0 0 0; color: var(--color-muted); font-size: 0.9375rem;">
+          ${isExt
+          ? `<p style="margin: 8px 0 0 0; color: var(--color-muted); font-size: 0.9375rem;">
                   Catatan: Untuk proses <strong>${escapeHtml(processVal)}</strong>, kombinasi hanya ditampilkan apabila Bahan A dan Bahan B sama-sama berstatus <strong>Compatible</strong> terhadap granulasi serta memenuhi rentang pH yang dipilih.
                 </p>`
-              : ''
-          }
+          : ''
+        }
         </div>
       `;
       return;
     }
 
-    const sliced = filtered.slice(0, visibleLimit);
-    const hasMore = filtered.length > visibleLimit;
+    const sliced = prioritized.slice(0, visibleLimit);
+    const hasMore = prioritized.length > visibleLimit;
 
     // Bila masuk dari kartu/detail bahan dan "Semua Warna Hasil" aktif, kelompokkan menurut Warna Hasil (Bagian 9)
     let cardsHtml = '';
